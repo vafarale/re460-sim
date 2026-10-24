@@ -27,7 +27,7 @@ h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: v
 .gauge-needle { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
 .gauge-needle2 { stroke: var(--red); stroke-width: 3; stroke-linecap: round; }
 .gauge-hub { fill: #888; }
-.desk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: var(--desk); border-radius: 12px; padding: 12px; }
+.desk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; background: var(--desk); border-radius: 12px; padding: 12px; }
 .panel { background: var(--panel); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .row { display: flex; gap: 6px; }
 .col { display: flex; flex-direction: column; gap: 6px; }
@@ -83,3 +83,11 @@ footer { color: var(--quiet); font-size: 12px; }
 .desk-info ul { margin: 4px 0 0; padding-left: 18px; color: var(--quiet); }
 .aux-title { margin: 4px 0 -4px; }
 .kv-unit { text-anchor: middle; }
+
+.active-control { cursor: pointer; }
+.active-control:hover { filter: brightness(1.3); }
+.desk-item rect.lit, .desk-item circle.lit { filter: brightness(1.6) drop-shadow(0 0 6px currentColor); stroke: #fff; stroke-width: 2; }
+[data-lamp] { opacity: .55; }
+[data-lamp].lit { opacity: 1; }
+.dmi-menu { fill: #9fb3a8; opacity: .85; }
+.dmi-menu-t { fill: #1b1e22; font-size: 11px; text-anchor: middle; font-weight: 600; }

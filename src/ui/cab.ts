@@ -11,7 +11,7 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
   root.innerHTML = `
     <header>
       <h1>Re 460 – Führerstand</h1>
-      <span class="hint">Anordnung nach Referenzbildern; Beschriftungen noch nicht belegt</span>
+      <span class="hint">Anordnung nach Referenzbildern R1–R6; Zuordnungen teils angenommen</span>
     </header>
     <section class="cab-desk" id="cab-desk"></section>
     <h2 class="aux-title">Hilfspult: Funktionen, deren Bedienelement auf den Bildern noch nicht identifiziert ist (Annahme A-UI-01)</h2>
@@ -19,20 +19,10 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
       <div class="panel">
         <h2>Versorgung</h2>
         <button data-cmd="battery" class="toggle">Batterie</button>
-        <button data-cmd="cab" class="toggle">Führerstand aktiv</button>
         <button data-cmd="aux">Hilfskompressor</button>
         <div class="lamps">
           <span class="lamp" data-lamp="battery">Batterie</span>
           <span class="lamp" data-lamp="aux">Hilfskompr.</span>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Hochspannung</h2>
-        <div class="row"><button data-cmd="panto-up">Stromabnehmer heben</button><button data-cmd="panto-down">senken</button></div>
-        <div class="row"><button data-cmd="hs-on">Hauptschalter ein</button><button data-cmd="hs-off">aus</button></div>
-        <div class="lamps">
-          <span class="lamp" data-lamp="panto">Stromabnehmer</span>
-          <span class="lamp red" data-lamp="hs-off">HS aus</span>
         </div>
       </div>
       <div class="panel">
@@ -128,13 +118,9 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
 
     lamp('battery', s.batteryOn);
     lamp('aux', s.auxCompressorRunning);
-    lamp('panto', s.pantograph === 'oben');
-    q('[data-lamp="panto"]').classList.toggle('blink', s.pantograph === 'hebt' || s.pantograph === 'senkt');
-    lamp('hs-off', s.batteryOn && !s.mainSwitchClosed);
     lamp('traction', s.tractionForceN > 0);
     lamp('ebrake', s.tractionForceN < 0);
     q('[data-cmd="battery"]').classList.toggle('active', s.batteryOn);
-    q('[data-cmd="cab"]').classList.toggle('active', s.cabActive);
     root.querySelectorAll<HTMLButtonElement>('[data-dir]').forEach((b) => b.classList.toggle('active', b.dataset.dir === s.direction));
     root.querySelectorAll<HTMLButtonElement>('[data-fbv]').forEach((b) => b.classList.toggle('active', b.dataset.fbv === s.brakeValve));
     const reason = lok.tractionBlockReason();

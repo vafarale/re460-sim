@@ -3,6 +3,7 @@ import type { Re460Vehicle } from '../vehicle/vehicle';
 import { CAB_ELEMENTS, type CabElement } from './cabCatalog';
 import { BOUND, DESK, PANELS, type Shape } from './deskLayout';
 import { Gauge } from './gauge';
+import { PARAMS } from '../vehicle/parameters';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -13,6 +14,24 @@ function el<K extends keyof SVGElementTagNameMap>(name: K, attrs: Record<string,
 }
 
 const byId = new Map(CAB_ELEMENTS.map((e) => [e.id, e]));
+
+/** Bedienhandlungen, die Pultelemente auslösen können. */
+const ACTIONS: Record<string, (lok: Re460Vehicle) => unknown> = {
+  'cab-toggle': (lok) => lok.setCabActive(!lok.state.cabActive),
+  'panto-up': (lok) => lok.raisePantograph(),
+  'panto-down': (lok) => lok.lowerPantograph(),
+  'hs-on': (lok) => lok.closeMainSwitch(),
+  'hs-off': (lok) => lok.openMainSwitchCommand(),
+};
+
+/** Leuchtbedingungen von Leuchttasten. */
+const LAMPS: Record<string, (lok: Re460Vehicle) => boolean> = {
+  cab: (lok) => lok.state.cabActive,
+  'panto-up': (lok) => lok.state.pantograph === 'oben',
+  'panto-moving': (lok) => lok.state.pantograph === 'hebt' || lok.state.pantograph === 'senkt',
+  'hs-on': (lok) => lok.state.mainSwitchClosed,
+  'hs-off': (lok) => lok.state.batteryOn && !lok.state.mainSwitchClosed,
+};
 
 function describe(e: CabElement): string {
   const conf = { belegt: 'Funktion belegt', wahrscheinlich: 'Funktion wahrscheinlich', unklar: 'Funktion unklar' }[e.confidence];
@@ -49,6 +68,7 @@ export function mountDesk(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynami
     if (e) info.innerHTML = describe(e);
   };
 
+  const lamps: { node: SVGElement; lamp: string }[] = [];
   for (const item of DESK) {
     const entry = byId.get(item.catalogId);
     const g = el('g', { class: `desk-item ${entry?.confidence ?? 'unklar'}`, 'data-id': item.catalogId });
@@ -58,6 +78,17 @@ export function mountDesk(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynami
         s.type === 'rect'
           ? el('rect', { x: s.x, y: s.y, width: s.w, height: s.h, rx: 3, fill })
           : el('circle', { cx: s.x, cy: s.y, r: s.r, fill });
+      const action = item.actions?.[i];
+      if (action && entry?.confidence !== 'unklar') {
+        shape.classList.add('active-control');
+        shape.setAttribute('data-action', action);
+        shape.addEventListener('click', () => ACTIONS[action]?.(lok));
+      }
+      const lamp = item.lamps?.[i];
+      if (lamp) {
+        shape.setAttribute('data-lamp', lamp);
+        lamps.push({ node: shape, lamp });
+      }
       g.append(shape);
     });
     g.addEventListener('click', () => showInfo(item.catalogId));
@@ -88,15 +119,22 @@ export function mountDesk(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynami
   for (let i = 0; i < 8; i++) dmiG.append(el('rect', { x: d.x + 6, y: d.y + 20 + i * 32, width: 16, height: 22, rx: 2, class: 'softkey' }));
   for (let i = 0; i < 8; i++) dmiG.append(el('rect', { x: d.x + d.w - 22, y: d.y + 20 + i * 32, width: 16, height: 22, rx: 2, class: 'softkey' }));
   for (let i = 0; i < 10; i++) dmiG.append(el('rect', { x: d.x + 34 + i * 27, y: d.y + d.h - 26, width: 20, height: 18, rx: 2, class: 'softkey' }));
-  const tacho = new Gauge({ label: 'v', unit: 'km/h', min: 0, max: 240, majorStep: 40 });
+  const tacho = new Gauge({ label: 'v', unit: 'km/h', min: 0, max: 240, majorStep: 20 });
   const ts = tacho.element;
   ts.setAttribute('x', String(d.x + 34));
   ts.setAttribute('y', String(d.y + 14));
-  ts.setAttribute('width', '230');
-  ts.setAttribute('height', '230');
+  ts.setAttribute('width', '205');
+  ts.setAttribute('height', '205');
   dmiG.append(ts);
   const dmiNote = el('text', { x: d.x + d.w / 2, y: d.y + d.h - 34, class: 'dmi-note' });
-  dmiNote.textContent = 'ETCS-DMI folgt (Phase 4)';
+  dmiNote.textContent = 'ETCS-Funktionen folgen (Phase 4)';
+  const menu = ['Mode', 'Data', 'Umgehen', 'Spez'];
+  menu.forEach((m, i) => {
+    dmiG.append(el('rect', { x: d.x + d.w - 84, y: d.y + 20 + i * 40, width: 56, height: 34, rx: 2, class: 'dmi-menu' }));
+    const t = el('text', { x: d.x + d.w - 56, y: d.y + 41 + i * 40, class: 'dmi-menu-t' });
+    t.textContent = m;
+    dmiG.append(t);
+  });
   dmiG.append(dmiNote);
   dmiG.addEventListener('click', () => showInfo(d.catalogId));
   svg.append(dmiG);
@@ -119,6 +157,23 @@ export function mountDesk(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynami
   kvG.append(kvNeedle);
   kvG.addEventListener('click', () => showInfo(k.catalogId));
   svg.append(kvG);
+
+  // Zug-/Bremskraft (wahrscheinlich, R6): Profilinstrument +100 … −100 % der Maximalkraft.
+  const F = BOUND.force;
+  const fG = el('g', { class: 'desk-item wahrscheinlich', 'data-id': F.catalogId });
+  fG.append(el('rect', { x: F.x, y: F.y, width: F.w, height: F.h, rx: 3, fill: '#0b0c0e', stroke: '#555' }));
+  const fY = (pct: number) => F.y + F.h / 2 - (pct / 100) * (F.h / 2 - 10);
+  fG.append(el('rect', { x: F.x + F.w - 8, y: fY(100), width: 4, height: fY(0) - fY(100), fill: '#2e9d57' }));
+  fG.append(el('rect', { x: F.x + F.w - 8, y: fY(0), width: 4, height: fY(-100) - fY(0), fill: '#e6b62a' }));
+  for (const v of [100, 50, 0, -50, -100]) {
+    const t = el('text', { x: F.x + 4, y: fY(v) + 4, class: 'kv-num' });
+    t.textContent = String(v);
+    fG.append(t);
+  }
+  const fNeedle = el('line', { x1: F.x + F.w - 22, x2: F.x + F.w - 2, y1: 0, y2: 0, class: 'kv-needle' });
+  fG.append(fNeedle);
+  fG.addEventListener('click', () => showInfo(F.catalogId));
+  svg.append(fG);
 
   // Kulissenhebel Mittelkonsole: Fahr-/Bremsschalter (wahrscheinlich), oben = Zugkraft.
   const L = BOUND.lever;
@@ -159,5 +214,10 @@ export function mountDesk(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynami
     kvNeedle.setAttribute('y1', String(kvY));
     kvNeedle.setAttribute('y2', String(kvY));
     handle.setAttribute('y', String(mid - 9 - s.tractionSetpoint * (L.h / 2 - 12)));
+    const maxF = s.tractionForceN >= 0 ? PARAMS.traction.maxForceN : PARAMS.traction.maxEBrakeForceN;
+    const fy = fY(Math.max(-100, Math.min(100, (s.tractionForceN / maxF) * 100)));
+    fNeedle.setAttribute('y1', String(fy));
+    fNeedle.setAttribute('y2', String(fy));
+    for (const l of lamps) l.node.classList.toggle('lit', LAMPS[l.lamp]?.(lok) ?? false);
   };
 }

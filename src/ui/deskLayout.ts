@@ -15,6 +15,10 @@ export interface DeskItem {
   shapes: Shape[];
   /** Farben je Form (Tasten), sonst neutral. */
   colors?: string[];
+  /** Bedienhandlung je Form, siehe ACTIONS in desk.ts. */
+  actions?: (string | undefined)[];
+  /** Leuchtbedingung je Form, siehe LAMPS in desk.ts. */
+  lamps?: (string | undefined)[];
 }
 
 const r = (x: number, y: number, w: number, h: number): Shape => ({ type: 'rect', x, y, w, h });
@@ -46,21 +50,25 @@ export const DESK: DeskItem[] = [
   { catalogId: 'mitte-zaehler', shapes: [r(412, 60, 46, 18), r(412, 84, 46, 18)] },
   { catalogId: 'mitte-tasten-links', shapes: [r(420, 268, 34, 26), r(460, 268, 34, 26), r(420, 300, 34, 26), r(460, 300, 34, 26)], colors: [WHITE, RED, RED, GREEN] },
   { catalogId: 'mitte-schild', shapes: [r(880, 50, 110, 40)], colors: [ORANGE] },
-  { catalogId: 'mitte-profilinstrument-links', shapes: [r(1010, 50, 44, 160)] },
   { catalogId: 'mitte-taste-rot-links', shapes: [r(1000, 222, 36, 26)], colors: [RED] },
   { catalogId: 'mitte-drehregler', shapes: [c(1060, 236, 13), c(1100, 236, 13)] },
   { catalogId: 'mitte-tastenreihe-unten', shapes: [r(1004, 280, 38, 28), r(1050, 280, 38, 28), r(1096, 280, 38, 28)], colors: [ORANGE, RED, ORANGE] },
   { catalogId: 'mitte-tastenspalte', shapes: [r(1136, 50, 34, 28), r(1136, 96, 34, 28), r(1136, 142, 34, 28), r(1136, 188, 34, 28)], colors: [ORANGE, ORANGE, RED, RED] },
   { catalogId: 'mitte-kleinpanel', shapes: [r(870, 230, 120, 90)] },
-  // Rechter Flügel
-  { catalogId: 'rechts-drehknopf-oben', shapes: [c(1240, 80, 16)] },
-  { catalogId: 'rechts-tastenreihe', shapes: [r(1276, 70, 22, 20), r(1302, 70, 22, 20), r(1328, 70, 22, 20), r(1354, 70, 22, 20)], colors: [RED, ORANGE, YELLOW, CYAN] },
-  { catalogId: 'rechts-tasten-gruen-rot', shapes: [r(1222, 116, 34, 26), r(1262, 116, 34, 26), r(1222, 260, 34, 26), r(1262, 260, 34, 26)], colors: [GREEN, RED, GREEN, RED] },
-  { catalogId: 'rechts-wahlschalter', shapes: [c(1258, 196, 30)] },
-  { catalogId: 'rechts-display', shapes: [r(1320, 110, 170, 120), r(1320, 240, 170, 70)] },
-  { catalogId: 'rechts-leuchttasten', shapes: [r(1506, 120, 26, 22), r(1538, 120, 26, 22), r(1570, 120, 22, 22), r(1506, 148, 26, 22), r(1538, 148, 26, 22), r(1570, 148, 22, 22), r(1506, 176, 26, 22), r(1538, 176, 26, 22), r(1506, 216, 26, 22), r(1506, 256, 26, 22), r(1506, 296, 26, 22), r(1540, 296, 26, 22)], colors: [ORANGE, ORANGE, YELLOW, ORANGE, RED, ORANGE, ORANGE, YELLOW, BLUE, YELLOW, GREEN, RED] },
-  { catalogId: 'rechts-schluessel', shapes: [c(1560, 360, 15)] },
-  { catalogId: 'rechts-hebel', shapes: [r(1576, 230, 18, 50)] },
+  // Rechter Flügel (nach R6)
+  { catalogId: 'rechts-klima-regler', shapes: [c(1256, 84, 18)] },
+  { catalogId: 'rechts-klima-tasten', shapes: [r(1220, 120, 34, 26), r(1262, 120, 34, 26)], colors: [GREEN, RED] },
+  { catalogId: 'rechts-wischer', shapes: [c(1256, 200, 26)] },
+  { catalogId: 'rechts-tasten-scheibe', shapes: [r(1220, 262, 34, 26), r(1262, 262, 34, 26)], colors: [GREEN, RED] },
+  { catalogId: 'rechts-tastenreihe', shapes: [r(1320, 70, 22, 18), r(1346, 70, 22, 18), r(1372, 70, 22, 18), r(1398, 70, 22, 18)], colors: [RED, ORANGE, YELLOW, CYAN] },
+  { catalogId: 'rechts-display', shapes: [r(1310, 100, 168, 130), r(1310, 240, 168, 70)] },
+  { catalogId: 'rechts-meldetasten', shapes: [r(1488, 104, 30, 22), r(1522, 104, 30, 22), r(1556, 104, 30, 22), r(1488, 132, 30, 22), r(1522, 132, 30, 22), r(1556, 132, 30, 22), r(1488, 170, 30, 22), r(1522, 170, 30, 22), r(1488, 206, 30, 22)], colors: [ORANGE, ORANGE, ORANGE, ORANGE, RED, ORANGE, ORANGE, ORANGE, RED] },
+  { catalogId: 'rechts-schluessel', shapes: [c(1566, 214, 14)], actions: ['cab-toggle'], lamps: ['cab'] },
+  { catalogId: 'rechts-hebel', shapes: [r(1548, 250, 40, 16)] },
+  { catalogId: 'rechts-parkbremse', shapes: [r(1488, 246, 30, 22)], colors: [BLUE] },
+  { catalogId: 'rechts-stromabnehmer-meldung', shapes: [r(1488, 284, 30, 22)], colors: [ORANGE], lamps: ['panto-moving'] },
+  { catalogId: 'rechts-stromabnehmer', shapes: [r(1474, 326, 28, 24), r(1506, 326, 28, 24)], colors: [GREEN, RED], actions: ['panto-up', 'panto-down'], lamps: ['panto-up', undefined] },
+  { catalogId: 'rechts-hauptschalter', shapes: [r(1540, 330, 22, 22), r(1566, 330, 22, 22)], colors: [GREEN, RED], actions: ['hs-on', 'hs-off'], lamps: ['hs-on', 'hs-off'] },
   // Mittelkonsole
   { catalogId: 'konsole-taste-symbol', shapes: [r(660, 380, 34, 26)], colors: [GREY] },
   { catalogId: 'konsole-taste-blau', shapes: [r(660, 414, 34, 26)], colors: [BLUE] },
@@ -75,5 +83,6 @@ export const BOUND = {
   bc: { catalogId: 'mitte-rundinstrument-unten', x: 470, y: 214, size: 100 },
   dmi: { catalogId: 'mitte-display', x: 530, y: 40, w: 330, h: 290 },
   kv: { catalogId: 'mitte-fahrleitung-kv', x: 1062, y: 50, w: 44, h: 160 },
+  force: { catalogId: 'mitte-profilinstrument-links', x: 1010, y: 50, w: 44, h: 160 },
   lever: { catalogId: 'konsole-hebel', x: 708, y: 490, w: 60, h: 140 },
 } as const;
