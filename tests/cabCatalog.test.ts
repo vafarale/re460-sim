@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { CAB_ELEMENTS } from '../src/ui/cabCatalog';
 import { listAssumptions } from '../src/core/assumptions';
 import '../src/vehicle/vehicle';
@@ -12,12 +12,19 @@ describe('Führerstand-Katalog', () => {
 
   it('jedes Element hat einen Beleg, und jeder Beleg existiert', () => {
     const known = new Set(listAssumptions().map((a) => a.id));
+    const refs = readFileSync('docs/referenz/README.md', 'utf8');
     for (const e of CAB_ELEMENTS) {
       expect(e.evidence.length, e.id).toBeGreaterThan(0);
       for (const ev of e.evidence) {
         if (ev.kind === 'annahme') expect(known.has(ev.assumptionId), `${e.id}: ${ev.assumptionId}`).toBe(true);
-        else expect(existsSync(`docs/referenz/${ev.file}`), `${e.id}: ${ev.file}`).toBe(true);
+        else expect(refs.includes(`| ${ev.ref} |`), `${e.id}: ${ev.ref}`).toBe(true);
       }
+    }
+  });
+
+  it('eine Funktion gilt nur mit Bildbeleg als belegt', () => {
+    for (const e of CAB_ELEMENTS.filter((x) => x.confidence === 'belegt')) {
+      expect(e.evidence.some((ev) => ev.kind === 'bild'), e.id).toBe(true);
     }
   });
 
