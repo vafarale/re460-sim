@@ -1,0 +1,19 @@
+{
+  "name": "re460-sim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browserbasierter Führerstand-Simulator der SBB Re 460 (Stand nach Refit, ETCS Level 2)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}
