@@ -1,7 +1,7 @@
 import { listAssumptions } from '../core/assumptions';
 import type { TrainDynamics } from '../physics/dynamics';
 import type { BrakeValvePosition, CommandResult, Direction, Re460Vehicle } from '../vehicle/vehicle';
-import { Gauge } from './gauge';
+import { mountDesk } from './desk';
 
 /**
  * Vereinfachter Führerstand für den Prototyp. Anordnung und Beschriftung sind
@@ -10,10 +10,11 @@ import { Gauge } from './gauge';
 export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamics): () => void {
   root.innerHTML = `
     <header>
-      <h1>Re 460 – Prototyp Führerstand</h1>
-      <span class="hint">Layout funktional, nicht originalgetreu (Annahme A-UI-01)</span>
+      <h1>Re 460 – Führerstand</h1>
+      <span class="hint">Anordnung nach Referenzbildern; Beschriftungen noch nicht belegt</span>
     </header>
-    <section class="instruments" id="instruments"></section>
+    <section class="cab-desk" id="cab-desk"></section>
+    <h2 class="aux-title">Hilfspult: Funktionen, deren Bedienelement auf den Bildern noch nicht identifiziert ist (Annahme A-UI-01)</h2>
     <section class="desk">
       <div class="panel">
         <h2>Versorgung</h2>
@@ -69,12 +70,7 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
     <footer id="status"></footer>
   `;
 
-  const tacho = new Gauge({ label: 'v', unit: 'km/h', min: 0, max: 240, majorStep: 20 });
-  const hl = new Gauge({ label: 'HL / HB', unit: 'bar', min: 0, max: 12, majorStep: 2, secondNeedle: true });
-  const bc = new Gauge({ label: 'Bremszylinder', unit: 'bar', min: 0, max: 6, majorStep: 1 });
-  const kv = new Gauge({ label: 'Fahrleitung', unit: 'kV', min: 0, max: 20, majorStep: 5 });
-  const force = new Gauge({ label: 'Zug-/Bremskraft', unit: 'kN', min: -300, max: 300, majorStep: 100 });
-  root.querySelector('#instruments')!.append(tacho.element, force.element, hl.element, bc.element, kv.element);
+  const renderDesk = mountDesk(root.querySelector<HTMLElement>('#cab-desk')!, lok, dyn);
 
   const q = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;
   const report = (r: CommandResult) => r;
@@ -128,11 +124,7 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
 
   return function render(): void {
     const s = lok.state;
-    tacho.set(dyn.speedKmh);
-    hl.set(s.hlBar, s.hbBar);
-    bc.set(s.bcBar);
-    kv.set(s.catenaryV / 1000);
-    force.set(s.tractionForceN / 1000);
+    renderDesk();
 
     lamp('battery', s.batteryOn);
     lamp('aux', s.auxCompressorRunning);
@@ -148,7 +140,8 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
     const reason = lok.tractionBlockReason();
     q('#block-reason').textContent = reason ? `Zugkraft gesperrt: ${reason}` : 'Zugkraft freigegeben';
     q('#block-reason').classList.toggle('ok', reason === null);
-    q('#setpoint-val').textContent = `${Math.round(s.tractionSetpoint * 100)} %`;
+    q('#setpoint-val').textContent = `${Math.round(s.tractionSetpoint * 100)} % · ${(s.tractionForceN / 1000).toFixed(0)} kN`;
+    if (document.activeElement !== setpoint) setpoint.value = String(Math.round(s.tractionSetpoint * 100));
 
     if (lok.messages.length !== shownMessages) {
       shownMessages = lok.messages.length;

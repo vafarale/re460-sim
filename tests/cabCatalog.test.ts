@@ -38,3 +38,12 @@ describe('Führerstand-Katalog', () => {
     }
   });
 });
+
+describe('Pultlayout', () => {
+  it('zeichnet nur Elemente aus dem Katalog', async () => {
+    const { DESK, BOUND } = await import('../src/ui/deskLayout');
+    const ids = new Set(CAB_ELEMENTS.map((e) => e.id));
+    for (const item of DESK) expect(ids.has(item.catalogId), item.catalogId).toBe(true);
+    for (const b of Object.values(BOUND)) expect(ids.has(b.catalogId), b.catalogId).toBe(true);
+  });
+});
