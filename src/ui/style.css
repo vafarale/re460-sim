@@ -58,3 +58,5 @@ footer { color: var(--quiet); font-size: 12px; }
   .desk { grid-template-columns: 1fr 1fr; }
   .bottom { grid-template-columns: 1fr; }
 }
+.block-reason { font-size: 12px; color: var(--amber); }
+.block-reason.ok { color: var(--green); }

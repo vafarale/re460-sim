@@ -126,6 +126,21 @@ describe('Fahren und Bremsen', () => {
     expect(dynamics.velocityMs).toBe(0);
   });
 
+  it('meldet einmal, warum die Zugkraft gesperrt ist', () => {
+    const { sim, vehicle: lok } = aufruesten();
+    lok.setBrakeValve('bremsen');
+    run(sim, 10);
+    lok.setDirection('vorwaerts');
+    lok.setTractionSetpoint(1);
+    run(sim, 2);
+    const blocked = lok.messages.filter((m) => m.text.startsWith('Zugkraft gesperrt'));
+    expect(blocked).toHaveLength(1);
+    expect(blocked[0]!.text).toContain('Bremse nicht gelöst');
+    lok.setBrakeValve('fahrt');
+    run(sim, 10);
+    expect(lok.tractionBlockReason()).toBeNull();
+  });
+
   it('bei angezogener Bremse gibt es keine Zugkraft', () => {
     const { sim, vehicle: lok } = aufruesten();
     lok.setBrakeValve('bremsen');

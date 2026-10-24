@@ -43,6 +43,7 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
         <input type="range" id="setpoint" min="-100" max="100" step="5" value="0" />
         <div class="scale"><span>E-Bremse</span><span id="setpoint-val">0</span><span>Zugkraft</span></div>
         <div class="lamps"><span class="lamp" data-lamp="traction">Zugkraft</span><span class="lamp" data-lamp="ebrake">E-Bremse</span></div>
+        <div class="block-reason" id="block-reason"></div>
       </div>
       <div class="panel">
         <h2>Führerbremsventil</h2>
@@ -144,6 +145,9 @@ export function mountCab(root: HTMLElement, lok: Re460Vehicle, dyn: TrainDynamic
     q('[data-cmd="cab"]').classList.toggle('active', s.cabActive);
     root.querySelectorAll<HTMLButtonElement>('[data-dir]').forEach((b) => b.classList.toggle('active', b.dataset.dir === s.direction));
     root.querySelectorAll<HTMLButtonElement>('[data-fbv]').forEach((b) => b.classList.toggle('active', b.dataset.fbv === s.brakeValve));
+    const reason = lok.tractionBlockReason();
+    q('#block-reason').textContent = reason ? `Zugkraft gesperrt: ${reason}` : 'Zugkraft freigegeben';
+    q('#block-reason').classList.toggle('ok', reason === null);
     q('#setpoint-val').textContent = `${Math.round(s.tractionSetpoint * 100)} %`;
 
     if (lok.messages.length !== shownMessages) {

@@ -73,6 +73,7 @@ export class Re460Vehicle implements SimModule {
   private time = 0;
   private pantoProgress = 0; // 0 = unten, 1 = oben
   private compressorOn = false;
+  private lastBlockReason: string | null = null;
 
   readonly state: VehicleState = {
     batteryOn: false,
@@ -177,6 +178,18 @@ export class Re460Vehicle implements SimModule {
     return { ok: true };
   }
 
+  /** Grund, warum Zugkraft gerade gesperrt ist, oder null wenn freigegeben. */
+  tractionBlockReason(): string | null {
+    const s = this.state;
+    if (!s.cabActive) return 'Führerstand nicht aktiviert';
+    if (!s.mainSwitchClosed) return 'Hauptschalter aus';
+    if (s.direction === 'neutral') return 'keine Fahrtrichtung gewählt';
+    if (s.hlBar < PARAMS.traction.minHlBar) {
+      return `Bremse nicht gelöst: HL ${s.hlBar.toFixed(1)} bar, nötig ${PARAMS.traction.minHlBar} bar`;
+    }
+    return null;
+  }
+
   // ---- Takt ----
 
   step(dt: number, time: number): void {
@@ -277,7 +290,14 @@ export class Re460Vehicle implements SimModule {
     const t = PARAMS.traction;
     const v = Math.max(this.env.speedMs(), 0.1);
     let target = 0;
-    const tractionReleased = s.mainSwitchClosed && s.cabActive && s.direction !== 'neutral' && s.hlBar >= t.minHlBar;
+    const blockReason = this.tractionBlockReason();
+    const tractionReleased = blockReason === null;
+    // Einmal melden, wenn Zugkraft verlangt, aber gesperrt ist (Text ohne Zahlen, damit nicht jeder Takt meldet).
+    const reasonKey = s.tractionSetpoint > 0 && blockReason ? blockReason.split(':')[0]! : null;
+    if (reasonKey !== this.lastBlockReason) {
+      if (reasonKey) this.warn(`Zugkraft gesperrt: ${blockReason}`);
+      this.lastBlockReason = reasonKey;
+    }
     if (s.tractionSetpoint > 0 && tractionReleased) {
       target = Math.min(s.tractionSetpoint * t.maxForceN, t.maxPowerW / v);
     } else if (s.tractionSetpoint < 0 && s.mainSwitchClosed && s.cabActive && this.env.speedMs() > 0.5) {
