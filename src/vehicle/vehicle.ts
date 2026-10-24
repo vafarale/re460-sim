@@ -16,6 +16,16 @@ assumption({
   rationale: 'Pultlayout nach Refit ist öffentlich nicht dokumentiert; Auswertung von Fotos und Videos steht aus.',
 });
 assumption({
+  id: 'A-UI-02',
+  statement: 'Zuordnung erkannter Pultelemente zu Funktionen (Rundinstrumente = Manometer, Schlüssel in der Mittelkonsole = Führerstand, Kulissenhebel = Fahr-/Bremsschalter).',
+  rationale: 'Aus Form und Lage auf Referenzbildern R1–R3 geschlossen; Beschriftungen nicht lesbar.',
+});
+assumption({
+  id: 'A-UI-03',
+  statement: 'Symbolzuordnung im rechten Flügel: Zickzack = Stromabnehmer, Kreis-Symbol = Hauptschalter, „P“ = Parkbremse, Schlüssel = Führerstand; linkes Profilinstrument = Zug-/Bremskraft in Prozent.',
+  rationale: 'Aus Symbolen und Skalen auf R6 geschlossen (grün „I“ = ein, rot = aus); Symbole nicht amtlich bestätigt.',
+});
+assumption({
   id: 'A-PNEU-05',
   statement: 'Führerbremsventil mit den Stellungen Füllen, Fahrt, Abschluss, Bremsen, Schnellbremsung.',
   rationale: 'Klassische Stellungen eines Führerbremsventils; Bauart auf der Re 460 nach Refit nicht belegt.',
